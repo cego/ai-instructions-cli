@@ -19,6 +19,7 @@ var flagToFile = map[string]string{
 	"--php":     filepath.Join(templatesDir, "php.json"),
 	"--laravel": filepath.Join(templatesDir, "laravel.json"),
 	"--react":   filepath.Join(templatesDir, "react.json"),
+	"--go":      filepath.Join(templatesDir, "go.json"),
 }
 
 type Section struct {
