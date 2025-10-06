@@ -1,0 +1,7 @@
+.idea
+.cego
+.gitlab-ci-local
+.go
+.golangci.yml
+# for building locally
+ai-instructions-pilot
