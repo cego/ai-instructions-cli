@@ -5,4 +5,4 @@
 .golangci.yml
 .github/copilot-instructions.md
 # for building locally
-ai-instructions-pilot
+ai-instructions-cli
