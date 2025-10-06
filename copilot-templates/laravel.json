@@ -1,0 +1,13 @@
+{
+  "title": "Laravel",
+  "sections": [
+    {
+      "heading": "sLanguage & Runtime",
+      "text": "sCore expectations for PHP code.",
+      "bullets": [
+        "sTarget PHP 8.2+ with strict_types=1;",
+        "Follow PSR-12 code style."
+      ]
+    }
+  ]
+}
