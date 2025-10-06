@@ -1,2 +1,2 @@
-module jakobkollerup.com/ai-instructions-pilot
-go 1.22
+module github.com/cego/ai-instructions-cli
+go 1.24.2
