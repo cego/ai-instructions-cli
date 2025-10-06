@@ -1,0 +1,13 @@
+{
+  "title": "Copilot instructions: PHP",
+  "sections": [
+    {
+      "heading": "Language & Runtime",
+      "text": "Core expectations for PHP code.",
+      "bullets": [
+        "Target PHP 8.2+ with strict_types=1;",
+        "Follow PSR-12 code style."
+      ]
+    }
+  ]
+}
