@@ -16,10 +16,10 @@ const (
 )
 
 var flagToFile = map[string]string{
-	"--php":     filepath.Join(templatesDir, "php.json"),
-	"--laravel": filepath.Join(templatesDir, "laravel.json"),
-	"--react":   filepath.Join(templatesDir, "react.json"),
-	"--go":      filepath.Join(templatesDir, "go.json"),
+	"php":     filepath.Join(templatesDir, "php.json"),
+	"laravel": filepath.Join(templatesDir, "laravel.json"),
+	"react":   filepath.Join(templatesDir, "react.json"),
+	"go":      filepath.Join(templatesDir, "go.json"),
 }
 
 type Section struct {
@@ -48,7 +48,7 @@ func main() {
 
 	for _, a := range args {
 		switch a {
-		case "--check":
+		case "--validate":
 			checkMode = true
 
 		default:
@@ -117,7 +117,7 @@ func main() {
 			os.Exit(1)
 		}
 		if string(existing) != md {
-			fmt.Fprintf(os.Stderr, "%s is out of date. Re-run without --check to regenerate.\n", outputPath)
+			fmt.Fprintf(os.Stderr, "%s is out of date. Re-run without --validate to regenerate.\n", outputPath)
 			os.Exit(1)
 		}
 		fmt.Println("OK: file is up to date.")
@@ -153,12 +153,12 @@ func printHelperText() {
 	for _, flag := range keys {
 		fmt.Printf("  %-10s %s\n", flag, flagToFile[flag])
 	}
-	fmt.Println("  --check     Check mode: verify file is up to date, don't write\n")
+	fmt.Println("  --validate     validation mode: verify file is up to date, don't write\n")
 
 	fmt.Println("Examples:")
 	fmt.Println("  ai-instructions-pilot --laravel")
 	fmt.Println("  ai-instructions-pilot --php --react")
-	fmt.Println("  ai-instructions-pilot --php --react --check")
+	fmt.Println("  ai-instructions-pilot --php --react --validate")
 }
 
 func loadTemplate(set string) (Template, error) {
