@@ -138,9 +138,9 @@ func main() {
 
 func printHelperText() {
 	fmt.Println("Usage:")
-	fmt.Println("  ai-instructions-pilot [flags]\n")
+	fmt.Println("  ai-instructions-pilot [options] [flags]")
 	fmt.Println("Description:")
-	fmt.Println("  Generates .github/copilot-instructions.md from selected templates.\n")
+	fmt.Println("  Generates .github/copilot-instructions.md from selected templates.")
 	fmt.Println("Flags:")
 
 	// Sort keys for deterministic help output
@@ -153,12 +153,12 @@ func printHelperText() {
 	for _, flag := range keys {
 		fmt.Printf("  %-10s %s\n", flag, flagToFile[flag])
 	}
-	fmt.Println("  --validate     validation mode: verify file is up to date, don't write\n")
+	fmt.Println("  --validate     validation mode: verify file is up to date, don't write")
 
 	fmt.Println("Examples:")
-	fmt.Println("  ai-instructions-pilot --laravel")
-	fmt.Println("  ai-instructions-pilot --php --react")
-	fmt.Println("  ai-instructions-pilot --php --react --validate")
+	fmt.Println("  ai-instructions-pilot laravel")
+	fmt.Println("  ai-instructions-pilot php react")
+	fmt.Println("  ai-instructions-pilot php react --validate")
 }
 
 func loadTemplate(set string) (Template, error) {
