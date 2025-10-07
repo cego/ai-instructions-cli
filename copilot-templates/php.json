@@ -3,10 +3,34 @@
   "sections": [
     {
       "heading": "Language & Runtime",
-      "text": "Core expectations for PHP code.",
+      "text": "Core expectations for modern PHP code.",
       "bullets": [
-        "Target PHP 8.2+ with strict_types=1;",
-        "Follow PSR-12 code style."
+        "Target PHP 8.4 with strict_types=1;",
+        "Follow PSR-12 code style and naming conventions;",
+        "Use readonly, enum, and intersection types where appropriate;",
+        "Prefer typed properties and promoted constructor parameters;",
+        "Leverage `match`, `nullsafe`, and `first-class callable` syntax for clarity;",
+        "Use native attributes for metadata instead of PHPDoc when possible;",
+        "Avoid dynamic (runtime) property creation—declare all explicitly;",
+        "Use `declare(strict_types=1);` at the top of all PHP files."
+      ]
+    },
+    {
+      "heading": "Testing & Quality",
+      "text": "Maintain robustness and clarity through testing and static analysis.",
+      "bullets": [
+        "Use PHPUnit for testing;",
+        "Run PHPStan at level 8+ for static analysis;",
+        "Ensure 100% strict typing coverage."
+      ]
+    },
+    {
+      "heading": "Performance & Architecture",
+      "text": "Modern PHP applications should be efficient, composable, and predictable.",
+      "bullets": [
+        "Prefer immutable data structures and pure functions when practical;",
+        "Avoid unnecessary object instantiation in hot paths;",
+        "Use `readonly` classes and properties for clear intent and optimization."
       ]
     }
   ]
