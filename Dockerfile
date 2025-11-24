@@ -14,6 +14,6 @@ RUN go build
 FROM alpine:3.22.1
 
 WORKDIR /app
-COPY --from=builder /app/ai-instructions-cli /usr/local/bin/
+COPY --from=builder /app/ai-instructions /usr/local/bin/
 
 CMD ["ai-instructions"]
