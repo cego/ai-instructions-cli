@@ -1,0 +1,46 @@
+{
+  "language": "go",
+  "sections": [
+    {
+      "heading": "Code Style",
+      "bullets": [
+        "Prefer clear, idiomatic Go over clever code.",
+        "Keep functions small and focused; avoid long parameter lists.",
+        "Use package-level comments to describe purpose and responsibilities.",
+        "Avoid unnecessary abstraction; simplicity beats generality in Go."
+      ]
+    },
+    {
+      "heading": "Error Handling",
+      "bullets": [
+        "Return errors explicitly; no exceptions.",
+        "Use `errors.Is` and `errors.As` for wrapping and inspection.",
+        "Avoid ignoring errors with `_`; always handle them appropriately."
+      ]
+    },
+    {
+      "heading": "Concurrency",
+      "bullets": [
+        "Use goroutines and channels for concurrency; prefer structured concurrency patterns.",
+        "Avoid shared mutable state; use synchronization primitives carefully.",
+        "Always clean up goroutines (e.g., context cancellation)."
+      ]
+    },
+    {
+      "heading": "Testing",
+      "bullets": [
+        "Write table-driven tests.",
+        "Use `t.Helper()` in helper functions.",
+        "Benchmark performance-critical code with `testing.B`."
+      ]
+    },
+    {
+      "heading": "Documentation & Comments",
+      "bullets": [
+        "Use GoDoc style comments: `// FunctionName ...` before exported symbols.",
+        "Keep comments factual and concise.",
+        "Document package-level behavior and assumptions."
+      ]
+    }
+  ]
+}
