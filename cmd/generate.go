@@ -73,20 +73,8 @@ var generateCmd = &cobra.Command{
 				}
 				fmt.Printf("Generated instructions\nCOPILOT documentation written to %s\n", outPath)
 			}
-		}
 
-		// This is where we generate the AGENTS.md
-		if len(agentFiles) > 0 {
-			content := buildAgentContent(agentFiles)
-
-			// Prepend stack section in auto-mode
-			if !anyRuleFlagsSet() && stack != nil {
-				stackSection := buildStackSection(stack)
-				if stackSection != "" {
-					content = stackSection + "\n\n---\n\n" + content
-				}
-			}
-
+			// Write the same content to AGENTS.md
 			agentsPath := "AGENTS.md"
 			if flagOut == "-" {
 				fmt.Println("\n=== AGENTS.md ===")
