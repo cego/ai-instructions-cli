@@ -15,5 +15,7 @@ FROM alpine:3.22.1
 
 WORKDIR /app
 COPY --from=builder /app/ai-instructions /usr/local/bin/
+COPY --from=builder /app/rules ./rules
 
-CMD ["ai-instructions"]
+CMD ["help"]
+ENTRYPOINT ["ai-instructions"]
