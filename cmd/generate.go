@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cego/ai-instructions/internal/detect"
+	"github.com/cego/ai-instructions/rules"
 )
 
 var (
@@ -20,33 +21,32 @@ var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate copilot-instructions.md and AGENTS.md based on detected stack or explicit flags",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		projectRoot := "."
+		projectRoot := "." // kept for future use (detection only)
 
 		var (
-			generalFiles []string
-			agentFiles   []agentFile
-			stack        *detect.DetectedStack
-			err          error
+			generalRuleIDs []string
+			agentRuleIDs   []agentFile
+			stack          *detect.DetectedStack
+			err            error
 		)
 
 		if anyRuleFlagsSet() {
 			// Manual mode
-			generalFiles = buildGeneralFilesFromFlags()
-			agentFiles = buildAgentFilesFromFlags()
+			generalRuleIDs = buildGeneralRulesFromFlags()
+			agentRuleIDs = buildAgentRulesFromFlags()
 		} else {
 			// Auto mode
 			stack, err = detect.DetectStack(projectRoot)
 			if err != nil {
 				return err
 			}
-
-			generalFiles = buildGeneralFilesFromDetection(stack)
-			agentFiles = buildAgentFilesFromDetection(stack)
+			generalRuleIDs = buildGeneralRulesFromDetection(stack)
+			agentRuleIDs = buildAgentRulesFromDetection(stack)
 		}
 
-		// Generate copilot-instructions.md
-		if len(generalFiles) > 0 {
-			content, err := loadAndMergeFiles(generalFiles)
+		// Generate copilot-instructions.md (general rules)
+		if len(generalRuleIDs) > 0 {
+			content, err := loadAndMergeRules(generalRuleIDs)
 			if err != nil {
 				return err
 			}
@@ -74,7 +74,7 @@ var generateCmd = &cobra.Command{
 				fmt.Printf("Generated instructions\nCOPILOT documentation written to %s\n", outPath)
 			}
 
-			// Write the same content to AGENTS.md
+			// Write same content to AGENTS.md (per original behavior)
 			agentsPath := "AGENTS.md"
 			if flagOut == "-" {
 				fmt.Println("\n=== AGENTS.md ===")
@@ -87,7 +87,19 @@ var generateCmd = &cobra.Command{
 			}
 		}
 
-		if len(generalFiles) == 0 && len(agentFiles) == 0 {
+		// Agents content (separate aggregation)
+		if len(agentRuleIDs) > 0 {
+			agentContent := buildAgentContent(agentRuleIDs)
+			if flagOut == "-" {
+				fmt.Println("\n=== (Agents Section) ===")
+				fmt.Println(agentContent)
+			} else {
+				// Append or create AGENTS.md with agent details separated
+				// (Optional enhancement: integrate directly above; kept simple)
+			}
+		}
+
+		if len(generalRuleIDs) == 0 && len(agentRuleIDs) == 0 {
 			fmt.Println("No rule files selected – nothing to generate.")
 		}
 
@@ -116,7 +128,7 @@ func init() {
 
 type agentFile struct {
 	Label string
-	Path  string
+	ID    string // rule identifier without prefix & extension (e.g. php/8/agent)
 }
 
 func buildStackSection(stack *detect.DetectedStack) string {
@@ -125,7 +137,6 @@ func buildStackSection(stack *detect.DetectedStack) string {
 	}
 
 	var lines []string
-
 	if stack.PHP != "" {
 		lines = append(lines, fmt.Sprintf("- PHP: %s", stack.PHP))
 	}
@@ -141,11 +152,9 @@ func buildStackSection(stack *detect.DetectedStack) string {
 	if stack.NuxtUI != "" {
 		lines = append(lines, fmt.Sprintf("- Nuxt UI: %s", stack.NuxtUI))
 	}
-
 	if len(lines) == 0 {
 		return ""
 	}
-
 	return "## Stack\n\n" + strings.Join(lines, "\n")
 }
 
@@ -153,27 +162,24 @@ func anyRuleFlagsSet() bool {
 	return len(flagRules) > 0
 }
 
-// Build general.md files
-func buildGeneralFilesFromDetection(stack *detect.DetectedStack) []string {
-	var files []string
-
-	addRulesFor(&files, "php", stack.PHP)
-	addRulesFor(&files, "laravel", stack.Laravel)
-	addRulesFor(&files, "nuxt", stack.Nuxt)
-	addRulesFor(&files, "vue", stack.Vue)
-	addRulesFor(&files, "nuxt_ui", stack.NuxtUI)
-
-	return files
+// General rules (general.md)
+func buildGeneralRulesFromDetection(stack *detect.DetectedStack) []string {
+	var ids []string
+	addRulesFor(&ids, "php", stack.PHP)
+	addRulesFor(&ids, "laravel", stack.Laravel)
+	addRulesFor(&ids, "nuxt", stack.Nuxt)
+	addRulesFor(&ids, "vue", stack.Vue)
+	addRulesFor(&ids, "nuxt_ui", stack.NuxtUI)
+	return ids
 }
 
-func addRulesFor(files *[]string, name, version string) {
+func addRulesFor(ids *[]string, name, version string) {
 	if version == "" {
 		return
 	}
 
-	baseDir := filepath.Join("rules", name)
-
-	*files = append(*files, filepath.Join(baseDir, "general.md"))
+	// Base general
+	addIfExists(ids, name+"/general")
 
 	norm := normalizeVersion(version)
 	if norm == "" {
@@ -187,66 +193,61 @@ func addRulesFor(files *[]string, name, version string) {
 		minor = parts[1]
 	}
 
+	// major.minor/general
 	if major != "" && minor != "" {
-		dir := filepath.Join(baseDir, major+"."+minor)
-		addAllMarkdownInDir(files, dir)
+		addIfExists(ids, name+"/"+major+"."+minor+"/general")
 	}
 
+	// major/general
 	if major != "" {
-		dir := filepath.Join(baseDir, major)
-		addAllMarkdownInDir(files, dir)
+		addIfExists(ids, name+"/"+major+"/general")
 	}
 }
 
-func addAllMarkdownInDir(files *[]string, dir string) {
-	info, err := os.Stat(dir)
-	if err != nil || !info.IsDir() {
-		return
+func addIfExists(ids *[]string, id string) {
+	if ruleExists(id) {
+		*ids = append(*ids, id)
 	}
-
-	matches, err := filepath.Glob(filepath.Join(dir, "general.md"))
-	if err != nil {
-		return
-	}
-
-	*files = append(*files, matches...)
 }
 
-func buildGeneralFilesFromFlags() []string {
-	var files []string
-
+func buildGeneralRulesFromFlags() []string {
+	var ids []string
 	for _, r := range flagRules {
-		path := filepath.Join("rules", filepath.FromSlash(r))
-
-		info, err := os.Stat(path)
-		if err != nil {
+		r = filepath.ToSlash(strings.TrimSpace(r))
+		if r == "" {
 			continue
 		}
 
-		if info.IsDir() {
-			matches, err := filepath.Glob(filepath.Join(path, "general.md"))
-			if err != nil {
-				continue
-			}
-			files = append(files, matches...)
-		} else {
-			files = append(files, path)
+		// Try as directory: r/general
+		dirGeneral := r + "/general"
+		if ruleExists(dirGeneral) {
+			ids = append(ids, dirGeneral)
+			continue
+		}
+
+		// Try direct general if user typed framework only
+		justGeneral := r + "/general"
+		if ruleExists(justGeneral) {
+			ids = append(ids, justGeneral)
+			continue
+		}
+
+		// Accept direct identifier if user passed full (e.g. php/8/general)
+		if ruleExists(r) {
+			ids = append(ids, r)
 		}
 	}
-
-	return files
+	return ids
 }
 
-// Build agent.md files
-func buildAgentFilesFromDetection(stack *detect.DetectedStack) []agentFile {
+// Agent rules (agent.md)
+func buildAgentRulesFromDetection(stack *detect.DetectedStack) []agentFile {
 	var files []agentFile
-
 	addAgentFor(&files, "PHP", "php", stack.PHP)
 	addAgentFor(&files, "Laravel", "laravel", stack.Laravel)
 	addAgentFor(&files, "Nuxt", "nuxt", stack.Nuxt)
 	addAgentFor(&files, "Vue", "vue", stack.Vue)
 	addAgentFor(&files, "Nuxt UI", "nuxt_ui", stack.NuxtUI)
-
 	return files
 }
 
@@ -255,7 +256,6 @@ func addAgentFor(files *[]agentFile, label, name, version string) {
 		return
 	}
 
-	baseDir := filepath.Join("rules", name)
 	norm := normalizeVersion(version)
 	parts := strings.Split(norm, ".")
 	major := parts[0]
@@ -264,67 +264,103 @@ func addAgentFor(files *[]agentFile, label, name, version string) {
 		minor = parts[1]
 	}
 
-	// Try major.minor/agent.md first
+	// major.minor/agent
 	if major != "" && minor != "" {
-		path := filepath.Join(baseDir, major+"."+minor, "agent.md")
-		*files = append(*files, agentFile{Label: label, Path: path})
-		return
+		id := name + "/" + major + "." + minor + "/agent"
+		if ruleExists(id) {
+			*files = append(*files, agentFile{Label: label, ID: id})
+			return
+		}
 	}
 
-	// Fallback: major/agent.md
+	// major/agent
 	if major != "" {
-		path := filepath.Join(baseDir, major, "agent.md")
-		*files = append(*files, agentFile{Label: label, Path: path})
-		return
+		id := name + "/" + major + "/agent"
+		if ruleExists(id) {
+			*files = append(*files, agentFile{Label: label, ID: id})
+			return
+		}
 	}
 
-	// Default: base agent.md
-	path := filepath.Join(baseDir, "agent.md")
-	*files = append(*files, agentFile{Label: label, Path: path})
+	// base/agent
+	id := name + "/agent"
+	if ruleExists(id) {
+		*files = append(*files, agentFile{Label: label, ID: id})
+	}
 }
 
-func buildAgentFilesFromFlags() []agentFile {
+func buildAgentRulesFromFlags() []agentFile {
 	var files []agentFile
-
 	for _, r := range flagRules {
-		path := filepath.Join("rules", filepath.FromSlash(r), "agent.md")
-		label := deriveRuleNameFromPath(path)
-		files = append(files, agentFile{Label: label, Path: path})
+		r = filepath.ToSlash(strings.TrimSpace(r))
+		if r == "" {
+			continue
+		}
+		id := r + "/agent"
+		label := deriveRuleLabel(id)
+		if ruleExists(id) {
+			files = append(files, agentFile{Label: label, ID: id})
+		}
 	}
-
 	return files
 }
 
+// Merge general rule contents
+func loadAndMergeRules(ids []string) (string, error) {
+	var b strings.Builder
+	for _, id := range ids {
+		data, err := rules.Get(id)
+		if err != nil {
+			if b.Len() > 0 {
+				b.WriteString("\n\n---\n\n")
+			}
+			b.WriteString("<!-- Missing instructions for ")
+			b.WriteString(deriveRuleLabel(id))
+			b.WriteString(" (expected file: rules/")
+			b.WriteString(id)
+			b.WriteString(".md) -->")
+			continue
+		}
+		if b.Len() > 0 {
+			b.WriteString("\n\n---\n\n")
+		}
+		b.WriteString(data)
+	}
+	return b.String(), nil
+}
+
+// Agent content aggregation
 func buildAgentContent(files []agentFile) string {
 	var b strings.Builder
-
 	b.WriteString("# Agents\n\n")
-	b.WriteString("<!-- This file is generated by ai-instructions. Do not edit manually. -->\n\n")
-	b.WriteString("---\n\n")
+	b.WriteString("<!-- Generated by ai-instructions. Do not edit manually. -->\n\n---\n\n")
 
 	for i, af := range files {
 		if i > 0 {
 			b.WriteString("\n\n---\n\n")
 		}
-
 		b.WriteString("## ")
 		b.WriteString(af.Label)
 		b.WriteString("\n\n")
 
-		data, err := os.ReadFile(af.Path)
+		data, err := rules.Get(af.ID)
 		if err != nil {
 			b.WriteString("<!-- Missing agent instructions for ")
 			b.WriteString(af.Label)
-			b.WriteString(" (expected file: ")
-			b.WriteString(af.Path)
-			b.WriteString(") -->")
+			b.WriteString(" (expected file: rules/")
+			b.WriteString(af.ID)
+			b.WriteString(".md) -->")
 			continue
 		}
-
-		b.Write(data)
+		b.WriteString(data)
 	}
-
 	return b.String()
+}
+
+// Existence probe via embedded rules
+func ruleExists(id string) bool {
+	_, err := rules.Get(id)
+	return err == nil
 }
 
 func normalizeVersion(v string) string {
@@ -332,11 +368,9 @@ func normalizeVersion(v string) string {
 	if v == "" {
 		return ""
 	}
-
 	v = strings.Split(v, "||")[0]
 	v = strings.Split(v, " ")[0]
 	v = strings.TrimLeft(v, "^~><= ")
-
 	var b strings.Builder
 	for _, r := range v {
 		if (r >= '0' && r <= '9') || r == '.' {
@@ -345,63 +379,50 @@ func normalizeVersion(v string) string {
 			break
 		}
 	}
-
 	return b.String()
 }
 
-func loadAndMergeFiles(files []string) (string, error) {
-	var b strings.Builder
-
-	for _, f := range files {
-		data, err := os.ReadFile(f)
-		if err != nil {
-			if b.Len() > 0 {
-				b.WriteString("\n\n---\n\n")
-			}
-
-			ruleName := deriveRuleNameFromPath(f)
-
-			b.WriteString("<!-- Missing instructions for ")
-			b.WriteString(ruleName)
-			b.WriteString(" (expected file: ")
-			b.WriteString(f)
-			b.WriteString(") -->")
-
-			continue
-		}
-
-		if b.Len() > 0 {
-			b.WriteString("\n\n---\n\n")
-		}
-
-		b.Write(data)
-	}
-
-	return b.String(), nil
+func deriveRuleLabel(id string) string {
+	id = strings.TrimSuffix(id, "/general")
+	id = strings.TrimSuffix(id, "/agent")
+	parts := strings.Split(id, "/")
+	return strings.Join(parts, " ")
 }
 
 func writeFileWithDirs(path string, data []byte) error {
 	dir := filepath.Dir(path)
-
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err := os.MkdirAll(dir, 0o755); err != nil {
+	if dir != "" && dir != "." {
+		if err := ensureDir(dir); err != nil {
 			return err
 		}
 	}
-
-	return os.WriteFile(path, data, 0o644)
+	return writeFile(path, data)
 }
 
-func deriveRuleNameFromPath(path string) string {
-	p := filepath.Clean(path)
+// This ensures the directory exists, even if it's empty.'
+func ensureDir(dir string) error {
+	return mkdirAll(dir, 0o755)
+}
 
-	prefix := "rules" + string(filepath.Separator)
-	p = strings.TrimPrefix(p, prefix)
-	p = strings.TrimSuffix(p, ".md")
+// This is a wrapper around writeFile to allow future abstraction.
+func writeFile(path string, data []byte) error {
+	return write(path, data, 0o644)
+}
 
-	parts := strings.Split(p, string(filepath.Separator))
-	if len(parts) == 1 {
-		return parts[0]
+// this is a wrapper around os.MkdirAll and os.WriteFile to allow future abstraction.
+var (
+	mkdirAll = func(path string, perm uint32) error {
+		return osMkdirAll(path, perm)
 	}
-	return strings.Join(parts, " ")
+	write = func(name string, data []byte, perm uint32) error {
+		return osWriteFile(name, data, perm)
+	}
+)
+
+// This is a wrapper around os.MkdirAll to allow future abstraction.
+func osMkdirAll(path string, perm uint32) error { return os.MkdirAll(path, os.FileMode(perm)) }
+
+// This is a wrapper around os.WriteFile to allow future abstraction.
+func osWriteFile(name string, data []byte, perm uint32) error {
+	return os.WriteFile(name, data, os.FileMode(perm))
 }

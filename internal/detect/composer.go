@@ -52,3 +52,35 @@ func detectFromComposer(projectRoot string, stack *DetectedStack) error {
 
 	return nil
 }
+
+func detectFromComposerLock(projectRoot string, stack *DetectedStack) error {
+	path := filepath.Join(projectRoot, "composer.lock")
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+
+	var lock struct {
+		Packages []struct {
+			Name    string `json:"name"`
+			Version string `json:"version"`
+		} `json:"packages"`
+	}
+	if err := json.Unmarshal(data, &lock); err != nil {
+		return err
+	}
+
+	if stack.Laravel == "" {
+		for _, pkg := range lock.Packages {
+			if pkg.Name == "laravel/framework" {
+				stack.Laravel = pkg.Version
+				break
+			}
+		}
+	}
+	return nil
+}

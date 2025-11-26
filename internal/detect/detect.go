@@ -57,6 +57,8 @@ func DetectStack(projectRoot string) (*DetectedStack, error) {
 		switch d.Name() {
 		case "composer.json":
 			_ = detectFromComposer(filepath.Dir(path), stack)
+		case "composer.lock":
+			_ = detectFromComposerLock(filepath.Dir(path), stack)
 		case "package.json":
 			_ = detectFromPackageJson(filepath.Dir(path), stack)
 		case "package-lock.json":

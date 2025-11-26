@@ -2,52 +2,26 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 
+	"github.com/cego/ai-instructions/rules"
 	"github.com/spf13/cobra"
 )
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all available rule files",
+	Short: "List all available embedded rule files",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		rules := []string{}
-
-		err := filepath.Walk("rules", func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-
-			if info.IsDir() {
-				return nil
-			}
-
-			if filepath.Ext(path) != ".md" {
-				return nil
-			}
-
-			trimmed := strings.TrimPrefix(path, "rules/")
-			trimmed = strings.TrimSuffix(trimmed, ".md")
-
-			rules = append(rules, trimmed)
-			return nil
-		})
-
+		names, err := rules.List()
 		if err != nil {
 			return err
 		}
-
-		if len(rules) == 0 {
+		if len(names) == 0 {
 			fmt.Println("No rules found.")
 			return nil
 		}
-
-		for _, rule := range rules {
-			fmt.Println(rule)
+		for _, n := range names {
+			fmt.Println(n)
 		}
-
 		return nil
 	},
 }
