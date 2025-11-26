@@ -1,5 +1,3 @@
-// go
-// File: 'cmd/validate.go'
 package cmd
 
 import (

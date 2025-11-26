@@ -1,4 +1,3 @@
-// File: rules/rules.go
 package rules
 
 import (
