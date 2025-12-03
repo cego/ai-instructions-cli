@@ -1,8 +1,12 @@
+AGENTS.md
+/AGENTS.md
+.DS_Store
 .idea
 .cego
 .gitlab-ci-local
 .go
 .golangci.yml
 .github/copilot-instructions.md
-# for building locally
-ai-instructions-pilot
+# binary for building locally
+ai-instructions
+/test
