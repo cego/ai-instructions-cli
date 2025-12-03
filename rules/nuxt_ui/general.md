@@ -522,7 +522,7 @@ export const usePlayerAccountClient = () => {
          lazy: true, // For data that should not be availabile on initial render
          ...options,
          key: "playerAccount:userInfo",
-         enabled: () => options.eanbled !== undefined ? toValue(options.enabled) && !!session_expiry.value : !!session_expiry.value
+         enabled: () => options.enabled !== undefined ? toValue(options.enabled) && !!session_expiry.value : !!session_expiry.value
      })
    }
 
