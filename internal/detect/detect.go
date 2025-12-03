@@ -46,7 +46,7 @@ func DetectStack(projectRoot string) (*DetectedStack, error) {
 				return fs.SkipDir
 			}
 
-			// skip bestemte foldere
+			// skip specific folders
 			if ignoredDirs[name] {
 				return fs.SkipDir
 			}
