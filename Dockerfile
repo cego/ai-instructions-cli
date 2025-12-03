@@ -17,5 +17,4 @@ WORKDIR /app
 COPY --from=builder /app/ai-instructions /usr/local/bin/
 COPY --from=builder /app/rules ./rules
 
-CMD ["help"]
-ENTRYPOINT ["ai-instructions"]
+CMD ["ai-instructions", "help"]
