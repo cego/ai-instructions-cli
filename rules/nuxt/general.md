@@ -768,4 +768,4 @@ When encountering ambiguous situations:
 
 ---
 
-**Note**: This document should be copied to any project using `@spilnu/core` as a distribution copi. Keep this file (the original) updated as patterns evolve.
+**Note**: This document should be copied to any project using `@spilnu/core` as a distribution copy. Keep this file (the original) updated as patterns evolve.
