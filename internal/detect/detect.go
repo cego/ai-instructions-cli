@@ -10,7 +10,7 @@ import (
 func DetectStack(projectRoot string) (*DetectedStack, error) {
 	stack := &DetectedStack{}
 
-	// Først: prøv roden, så root får lov at “vinde”
+	// First: try the root, so root gets to "win"
 	if err := detectFromComposer(projectRoot, stack); err != nil {
 		return nil, err
 	}
