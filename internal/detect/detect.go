@@ -41,7 +41,7 @@ func DetectStack(projectRoot string) (*DetectedStack, error) {
 		if d.IsDir() {
 			name := d.Name()
 
-			// skip dot-foldere: .git, .idea, .vscode, ...
+			// skip dot-folders: .git, .idea, .vscode, ...
 			if strings.HasPrefix(name, ".") {
 				return fs.SkipDir
 			}
