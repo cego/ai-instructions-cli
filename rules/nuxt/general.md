@@ -483,8 +483,8 @@ export const usePlayerAccountClient = () => {
        const { data } = await client.GET("/public/user/info")
        return data
      }, {
-         server: false, // For data that should not be availabile on initial render
-         lazy: true, // For data that should not be availabile on initial render
+         server: false, // For data that should not be available on initial render
+         lazy: true, // For data that should not be available on initial render
          ...options,
          key: "playerAccount:userInfo",
          enabled: () => options.eanbled !== undefined ? toValue(options.enabled) && !!session_expiry.value : !!session_expiry.value
