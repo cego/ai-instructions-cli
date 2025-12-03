@@ -29,7 +29,7 @@ func DetectStack(projectRoot string) (*DetectedStack, error) {
 
 	err := filepath.WalkDir(projectRoot, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			// hvis der er en random permission-fejl et sted, så spring den bare over
+			// if there's a random permission error somewhere, just skip it
 			return nil
 		}
 
