@@ -2,8 +2,25 @@
 
 This file contains Laravel and PHP coding standards optimized for AI code assistants like Claude Code, GitHub Copilot, and Cursor. These guidelines are derived from Spatie's comprehensive Laravel & PHP standards.
 
-## Core Laravel Principle
 
+This document outlines general guidelines and best practices for developing services using the Laravel PHP framework.
+
+## Laravel Best Practices
+
+- **Use Eloquent ORM for database interactions:** Prefer Eloquent models over raw queries for maintainability and security.
+- **Follow PSR standards:** Adhere to PSR-1, PSR-2, and PSR-4 coding standards for consistency.
+- **Utilize Laravel's built-in validation:** Always validate user input using Laravel's validation features.
+- **Leverage Service Providers:** Register bindings and event listeners in service providers for better organization.
+- **Environment Configuration:** Store sensitive credentials in `.env` files and never commit them to version control.
+- **Use Migrations for Database Changes:** Track and manage database schema changes using Laravel migrations.
+- **Route Organization:** Group related routes using route groups and controllers for clarity.
+- **Testing:** Write feature and unit tests using Laravel's built-in testing tools.
+- **Error Handling:** Use Laravel's exception handler for consistent error responses.
+
+## Additional Resources
+
+- [Laravel Documentation](https://laravel.com/docs)
+- [Laravel Best Practices](https://laravel.com/docs/10.x/contributions#best-practices)
 **Follow Laravel conventions first.** If Laravel has a documented way to do something, use it. Only deviate when you have a clear justification.
 
 ## PHP Standards
